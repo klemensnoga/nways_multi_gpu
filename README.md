@@ -1,3 +1,5 @@
+** Please note this repository is archived and no more actively maintained ** 
+
 # N-Ways to Multi-GPU Programming
 
 This repository contains mini applications for GPU Bootcamps. This bootcamp focuses on multi-GPU programming models.
