@@ -1,0 +1,24 @@
+#!/bin/bash
+#SBATCH --time=00:05:00
+#SBATCH --account=tutorial
+#SBATCH --partition=tutorial
+#SBATCH --nodes=1
+#SBATCH --ntasks=4
+#SBATCH --ntasks-per-node=4
+#SBATCH --cpus-per-task=16
+#SBATCH --gpus-per-task=1
+#SBATCH --output="profiling-4g-cuda-aware-output.log"
+#SBATCH --error="profiling-4g-cuda-aware-output.log"
+
+export PMIX_MCA_psec=^munge
+unset SLURM_CPU_BIND 
+
+mkdir -p ../../source_code/mpi/output_profiler
+profiler_output=../../source_code/mpi/output_profiler
+
+#source ~/nways_multigpu/start_mpi_lustre.sh
+
+mpirun --version
+nsys --version
+
+nsys profile --trace=mpi,cuda,nvtx,ucx --stats=true --nic-metrics=true -o $profiler_output/jacobi_cuda_aware_mpi_report  --force-overwrite true srun --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix  ./jacobi_cuda_aware_mpi -nx 4096 -ny 8192 -skip_single_gpu

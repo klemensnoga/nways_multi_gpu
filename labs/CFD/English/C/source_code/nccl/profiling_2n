@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH --time=00:05:00
+#SBATCH --account=tutorial
+#SBATCH --partition=tutorial
+#SBATCH --nodes=2
+#SBATCH --ntasks=16
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=16
+#SBATCH --gpus=16
+#SBATCH --output="profiling-2n-output.log"
+#SBATCH --error="profiling-2n-output.log"
+#SBATCH -C memfs
+
+unset SLURM_EXPORT_ENV 
+unset SLURM_MEM_PER_NODE
+unset SBATCH_EXPORT
+
+export PMIX_MCA_psec=^munge
+unset SLURM_CPU_BIND
+unset OMPI_MCA_hwloc_base_binding_policy
+unset OMPI_MCA_rmaps_base_mapping_policy
+
+mkdir -p ../../source_code/nccl/output_profiler
+profiler_output=../../source_code/nccl/output_profiler
+
+mpirun -np 16 --map-by ppr:4:socket nsys profile --trace=cuda,mpi,nvtx,ucx  --stats=true --nic-metrics=true --force-overwrite true -o $profiler_output/jacobi_nccl_report_2n.%q{OMPI_COMM_WORLD_RANK} ./jacobi_nccl -ny 32768 -niter 5000 -skip_single_gpu

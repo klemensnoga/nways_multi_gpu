@@ -1,0 +1,30 @@
+#!/bin/bash
+#SBATCH --time=01:00:00
+#SBATCH --account=tutorial
+#SBATCH --partition=tutorial
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --gpus-per-task=1
+#SBATCH --cpus-per-task=16
+#SBATCH --output="profiling-4g-output.log"
+#SBATCH --error="profiling-4g-output.log"
+
+unset SLURM_EXPORT_ENV 
+unset SLURM_MEM_PER_NODE
+unset SBATCH_EXPORT
+
+module load nvompic/2023b
+
+export PMIX_MCA_psec=^munge
+unset SLURM_CPU_BIND
+unset OMPI_MCA_hwloc_base_binding_policy
+unset OMPI_MCA_rmaps_base_mapping_policy
+
+mkdir -p ../../source_code/nccl/output_profiler
+profiler_output=../../source_code/nccl/output_profiler
+
+
+mpirun --version
+nsys --version
+
+nsys profile --trace=cuda,mpi,nvtx,ucx  --stats=true --nic-metrics=true --force-overwrite true -o $profiler_output/jacobi_nccl_report mpirun -np 4 --map-by ppr:4:socket ./jacobi_nccl -nx 4096 -ny 8192 -niter 5000 -skip_single_gpu

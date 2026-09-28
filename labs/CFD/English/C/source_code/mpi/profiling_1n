@@ -1,0 +1,24 @@
+#!/bin/bash
+#SBATCH --time=00:05:00
+#SBATCH --account=tutorial
+#SBATCH --partition=tutorial
+#SBATCH --nodes=1
+#SBATCH --ntasks=8
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=16
+#SBATCH --gpus-per-task=1
+#SBATCH --output="profiling-1n-output.log"
+#SBATCH --error="profiling-1n-output.log"
+
+export PMIX_MCA_psec=^munge
+unset SLURM_CPU_BIND 
+
+mkdir -p ../../source_code/mpi/output_profiler
+profiler_output=../../source_code/mpi/output_profiler
+
+#source ~/nways_multigpu/start_mpi_lustre.sh
+
+mpirun --version
+nsys --version
+
+nsys profile --trace=cuda,mpi,nvtx,ucx  --stats=true --nic-metrics=true --force-overwrite true -o $profiler_output/jacobi_memcpy_mpi_report_1n srun --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix ./jacobi_memcpy_mpi -ny 16384 -skip_single_gpu

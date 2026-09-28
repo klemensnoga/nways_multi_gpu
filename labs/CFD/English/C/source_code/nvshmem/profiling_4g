@@ -1,0 +1,35 @@
+#!/bin/bash
+#SBATCH --time=01:00:00
+#SBATCH --account=tutorial
+#SBATCH --partition=tutorial
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --gpus=4
+#SBATCH --cpus-per-task=16
+#SBATCH --output="profiling-4g-output.log"
+#SBATCH --error="profiling-4g-output.log"
+
+unset SLURM_EXPORT_ENV 
+unset SLURM_MEM_PER_NODE
+unset SBATCH_EXPORT
+
+module purge 2> profiling-4g-output-modules.log
+module load nvompic/2021b 2>> profiling-4g-output-modules.log
+
+export PMIX_MCA_psec=^munge
+unset SLURM_CPU_BIND
+unset OMPI_MCA_hwloc_base_binding_policy
+unset OMPI_MCA_rmaps_base_mapping_policy
+export NVSHMEM_HOME=${NVHPC}/Linux_x86_64/22.11/comm_libs/11.8/nvshmem
+export MPI_HOME=$EBROOTOPENMPI
+
+mkdir -p ../../source_code/nvshmem/output_profiler
+profiler_output=../../source_code/nvshmem/output_profiler
+
+mpirun --version
+nsys --version
+
+export NVSHMEM_NVTX=common
+
+nsys profile --trace=cuda,mpi,nvtx,ucx  --stats=true --nic-metrics=true --force-overwrite true -o $profiler_output/jacobi_nvshmem_report mpirun -np 4 --map-by ppr:4:socket ./jacobi_nvshmem -nx 4096 -ny 8192 -skip_single_gpu
+
