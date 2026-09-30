@@ -8,9 +8,22 @@
 #SBATCH --output="jacobi-cuda-aware-mpi-output.log"
 #SBATCH --error="jacobi-cuda-aware-mpi-output.log"
 
-export PMIX_MCA_psec=^munge
-unset SLURM_CPU_BIND
+# uncomment if you want to use script outside the Jupyter notebook environment
+#module load nvompic/2023b 
 
-srun --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix ./jacobi_cuda_aware_mpi  -nx 2048 -ny 4096
+export PMIX_MCA_psec=^munge
+
+echo "mpirun:"
+mpirun -np $SLURM_NTASKS ./jacobi_cuda_aware_mpi -nx 2048 -ny 4096
+# uncomment if you want to see binding information for mpi processes
+#mpirun -np $SLURM_NTASKS --report-bindings ./jacobi_cuda_aware_mpi -nx 2048 -ny 4096
+
+# uncomment if you want to use srun instead of mpirun
+#echo "srun:"
+#srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix  --cpu-bind=cores ./jacobi_cuda_aware_mpi  -nx 2048 -ny 4096
+# uncomment if you want to see binding information for srun/mpi processes
+#srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix  --cpu-bind=verbose,cores ./jacobi_cuda_aware_mpi  -nx 2048 -ny 4096
+
+
 
 

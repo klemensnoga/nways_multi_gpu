@@ -8,8 +8,18 @@
 #SBATCH --output="jacobi-memcpy-mpi-output.log"
 #SBATCH --error="jacobi-memcpy-mpi-output.log"
 
+# uncomment if you want to use script outside the Jupyter notebook environment
+#module load nvompic/2023b 
+
 export PMIX_MCA_psec=^munge
-unset SLURM_CPU_BIND 
 
-srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix ./jacobi_memcpy_mpi -nx 2048 -ny 4096
+echo "mpirun:"
+mpirun -np $SLURM_NTASKS ./jacobi_memcpy_mpi -nx 2048 -ny 4096
+# uncomment if you want to see binding information for mpi processes
+#mpirun -np $SLURM_NTASKS --report-bindings ./jacobi_memcpy_mpi -nx 2048 -ny 4096
 
+# uncomment if you want to use srun instead of mpirun
+#echo "srun:"
+#srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix  --cpu-bind=cores ./jacobi_memcpy_mpi  -nx 2048 -ny 4096
+# uncomment if you want to see binding information for srun/mpi processes
+#srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix  --cpu-bind=verbose,cores ./jacobi_memcpy_mpi  -nx 2048 -ny 4096

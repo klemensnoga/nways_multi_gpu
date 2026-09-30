@@ -10,6 +10,5 @@
 #SBATCH --error="hello-world-output.log"
 
 export PMIX_MCA_psec=^munge
-unset SLURM_CPU_BIND 
 
 srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE --mem-per-cpu=$SLURM_MEM_PER_CPU --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmix ./hello_world
